@@ -9,6 +9,8 @@ local _G = _G
 local prefixDropDownList = "ElioteDDM_DropDownList"
 local prefixDropDownListButtonRegex = "^" .. prefixDropDownList .. "[0-9]+$"
 
+local IS_CLASSIC = select(4, GetBuildInfo()) < 20000
+
 local BACKDROP_DROPDOWN = {
 	bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
 	edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
@@ -70,6 +72,12 @@ local function DropDownExpandArrow_OnEnter(self)
 			lib.ToggleDropDownMenu(level, self:GetParent().value, nil, nil, nil, nil, self:GetParent().menuList, self);
 		end
 	end
+
+	lib.UIDropDownMenu_StopCounting(self:GetParent():GetParent());
+end
+
+local function DropDownExpandArrow_OnLeave(self)
+	lib.UIDropDownMenu_StartCounting(self:GetParent():GetParent());
 end
 
 -- UIDropDownMenuTemplates.xml
@@ -126,17 +134,20 @@ local function CreateDropDownMenuButton(name, parent)
 	colorSwatchFrame:SetScript("OnEnter", function(self, motion)
 		lib.CloseDropDownMenus(self:GetParent():GetParent():GetID() + 1)
 		_G[self:GetName() .. "SwatchBg"]:SetColorTexture(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+		lib.UIDropDownMenu_StopCounting(self:GetParent():GetParent());
 	end)
 	colorSwatchFrame:SetScript("OnLeave", function(self, motion)
 		_G[self:GetName() .. "SwatchBg"]:SetColorTexture(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+		lib.UIDropDownMenu_StartCounting(self:GetParent():GetParent());
 	end)
 
-	local arrowFrame = CreateFrame("DropDownToggleButton", name .. "ExpandArrow", dropDownFrame)
+	local arrowFrame = CreateFrame("Button", name .. "ExpandArrow", dropDownFrame)
 	arrowFrame:Hide()
 	arrowFrame:SetSize(16, 16)
 	arrowFrame:SetPoint("RIGHT", dropDownFrame, 0, 0)
 	arrowFrame:SetScript("OnMouseDown", DropDownExpandArrow_OnMouseDown)
 	arrowFrame:SetScript("OnEnter", DropDownExpandArrow_OnEnter)
+	arrowFrame:SetScript("OnLeave", DropDownExpandArrow_OnLeave)
 
 	local arrowTexture = arrowFrame:CreateTexture()
 	arrowTexture:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
@@ -179,6 +190,8 @@ local function CreateDropDownList(name, parent)
 	dropDownListFrame:SetScript("OnUpdate", lib.UIDropDownMenu_OnUpdate)
 	dropDownListFrame:SetScript("OnShow", lib.UIDropDownMenu_OnShow)
 	dropDownListFrame:SetScript("OnHide", lib.UIDropDownMenu_OnHide)
+	dropDownListFrame:SetScript("OnEnter", lib.UIDropDownMenu_StopCounting)
+	dropDownListFrame:SetScript("OnLeave", lib.UIDropDownMenu_StartCounting)
 
 	local backdropFrame = _G[name .. "Backdrop"] or CreateFrame("Frame", name .. "Backdrop", dropDownListFrame, BackdropTemplateMixin and "BackdropTemplate")
 	backdropFrame:SetParent(dropDownListFrame)
@@ -454,6 +467,7 @@ function lib.UIDropDownMenuButtonInvisibleButton_OnEnter(self)
 end
 
 function lib.UIDropDownMenuButtonInvisibleButton_OnLeave(self)
+	lib.UIDropDownMenu_StartCounting(self:GetParent():GetParent());
 	GetAppropriateTooltip():Hide();
 end
 
@@ -468,6 +482,7 @@ function lib.UIDropDownMenuButton_OnEnter(self)
 		lib.CloseDropDownMenus(self:GetParent():GetID() + 1);
 	end
 	self.Highlight:Show();
+	lib.UIDropDownMenu_StopCounting(self:GetParent());
 	if (self.tooltipTitle and not self.noTooltipWhileEnabled) then
 		if (self.tooltipOnButton) then
 			local tooltip = GetAppropriateTooltip();
@@ -488,6 +503,7 @@ end
 
 function lib.UIDropDownMenuButton_OnLeave(self)
 	self.Highlight:Hide();
+	lib.UIDropDownMenu_StartCounting(self:GetParent());
 	GetAppropriateTooltip():Hide();
 
 	if (self.mouseOverIcon ~= nil) then
@@ -1370,7 +1386,6 @@ function lib.ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 
 		listFrame.onHide = dropDownFrame.onHide;
 
-
 		--  We just move level 1 enough to keep it on the screen. We don't necessarily change the anchors.
 		if (level == 1) then
 			local offLeft = listFrame:GetLeft() / uiScale;
@@ -1433,6 +1448,11 @@ function lib.ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 			listFrame.parentID = anchorFrame:GetID();
 			listFrame:SetPoint(point, anchorFrame, relativePoint, xOffset, yOffset);
 		end
+
+		if (autoHideDelay and tonumber(autoHideDelay)) then
+			listFrame.showTimer = autoHideDelay;
+			listFrame.isCounting = 1;
+		end
 	end
 end
 
@@ -1479,6 +1499,8 @@ function lib.UIDropDownMenu_OnShow(self)
 	if (not self.noResize) then
 		self:SetWidth(self.maxWidth + 25);
 	end
+
+	self.showTimer = nil;
 
 	if (self:GetID() > 1) then
 		self.parent = _G[prefixDropDownList .. (self:GetID() - 1)];
@@ -1689,6 +1711,44 @@ end
 
 function lib.ColorPicker_GetPreviousValues()
 	return ColorPickerFrame.previousValues.r, ColorPickerFrame.previousValues.g, ColorPickerFrame.previousValues.b;
+end
+
+function lib.UIDropDownMenu_StartCounting() end -- no op
+function lib.UIDropDownMenu_StopCounting() end -- no op
+
+if IS_CLASSIC then
+	-- Start the countdown on a frame
+	function lib.UIDropDownMenu_StartCounting(frame)
+		if (frame.parent) then
+			lib.UIDropDownMenu_StartCounting(frame.parent);
+		else
+			frame.showTimer = lib.UIDROPDOWNMENU_SHOW_TIME;
+			frame.isCounting = 1;
+		end
+	end
+
+	-- Stop the countdown on a frame
+	function lib.UIDropDownMenu_StopCounting(frame)
+		if (frame.parent) then
+			lib.UIDropDownMenu_StopCounting(frame.parent);
+		else
+			frame.isCounting = nil;
+		end
+	end
+
+	local oldOnUpdate = lib.UIDropDownMenu_OnUpdate
+	function lib.UIDropDownMenu_OnUpdate(self, elapsed)
+		oldOnUpdate(self, elapsed)
+		if (not self.showTimer or not self.isCounting) then
+			return ;
+		elseif (self.showTimer < 0) then
+			self:Hide();
+			self.showTimer = nil;
+			self.isCounting = nil;
+		else
+			self.showTimer = self.showTimer - elapsed;
+		end
+	end
 end
 
 function lib.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDelay)
