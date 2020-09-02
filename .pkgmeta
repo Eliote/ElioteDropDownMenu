@@ -1,0 +1,8 @@
+package-as: ElioteDropDownMenu-1.0
+
+ignore:
+    - .gitignore
+
+manual-changelog:
+    filename: CHANGELOG.txt
+    markup-type: markdown
