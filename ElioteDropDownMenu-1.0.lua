@@ -309,12 +309,12 @@ local function CreateDropDownMenu(name, parent)
 end
 
 function lib.UIDropDownMenu_GetOrCreate(name, parent)
-	if _G[name] then return _G[name] end
+	if name and _G[name] then return _G[name] end
 	return CreateDropDownMenu(name, parent)
 end
 
 function lib.UIDropDownMenu_Create(name, parent, ignoreNameConflict)
-	if not ignoreNameConflict and _G[name] then
+	if name and not ignoreNameConflict and _G[name] then
 		error("Frame with name " .. name .. " already exists!")
 	end
 	return CreateDropDownMenu(name, parent)
