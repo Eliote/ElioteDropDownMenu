@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 1
+local libName, libVersion = "ElioteDropDownMenu-1.0", 2
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -1004,7 +1004,7 @@ function lib.UIDropDownMenu_GetButtonWidth(button)
 
 	-- Add padding if has and expand arrow or color swatch
 	if (button.hasArrow or button.hasColorSwatch) then
-		width = width + 10;
+		width = width + 20;
 	end
 	if (button.notCheckable) then
 		width = width - 30;
