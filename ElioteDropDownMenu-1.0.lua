@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 2
+local libName, libVersion = "ElioteDropDownMenu-1.0", 3
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -82,46 +82,46 @@ end
 
 -- UIDropDownMenuTemplates.xml
 local function CreateDropDownMenuButton(name, parent)
-	local dropDownFrame = CreateFrame("Button", name, parent)
+	local dropDownFrame = _G[name] or CreateFrame("Button", name, parent)
 	dropDownFrame:SetWidth(100)
 	dropDownFrame:SetHeight(16)
 	dropDownFrame:SetFrameLevel(dropDownFrame:GetParent():GetFrameLevel() + 2)
 
-	local highlight = dropDownFrame:CreateTexture(name .. "Highlight", "BACKGROUND")
+	local highlight = _G[name .. "Highlight"] or dropDownFrame:CreateTexture(name .. "Highlight", "BACKGROUND")
 	dropDownFrame.Highlight = highlight
 	highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
 	highlight:SetBlendMode("ADD")
 	highlight:SetAllPoints()
 	highlight:Hide()
 
-	local radioOn = dropDownFrame:CreateTexture(name .. "Check", "ARTWORK")
+	local radioOn = _G[name .. "Check"] or dropDownFrame:CreateTexture(name .. "Check", "ARTWORK")
 	radioOn:SetTexture("Interface\\Common\\UI-DropDownRadioChecks")
 	radioOn:SetSize(16, 16)
 	radioOn:SetPoint("LEFT", dropDownFrame, 0, 0)
 	radioOn:SetTexCoord(0, 0.5, 0.5, 1.0)
 
-	local radioOff = dropDownFrame:CreateTexture(name .. "UnCheck", "ARTWORK")
+	local radioOff = _G[name .. "UnCheck"] or dropDownFrame:CreateTexture(name .. "UnCheck", "ARTWORK")
 	radioOff:SetTexture("Interface\\Common\\UI-DropDownRadioChecks")
 	radioOff:SetSize(16, 16)
 	radioOff:SetPoint("LEFT", dropDownFrame, 0, 0)
 	radioOff:SetTexCoord(0.5, 1.0, 0.5, 1.0)
 
-	local icon = dropDownFrame:CreateTexture(name .. "Icon", "ARTWORK")
+	local icon = _G[name .. "Icon"] or dropDownFrame:CreateTexture(name .. "Icon", "ARTWORK")
 	icon:Hide()
 	icon:SetSize(16, 16)
 	icon:SetPoint("RIGHT", dropDownFrame, 0, 0)
 
-	local colorSwatchFrame = CreateFrame("Button", name .. "ColorSwatch", dropDownFrame)
+	local colorSwatchFrame = _G[name .. "ColorSwatch"] or CreateFrame("Button", name .. "ColorSwatch", dropDownFrame)
 	colorSwatchFrame:Hide()
 	colorSwatchFrame:SetPoint("RIGHT", dropDownFrame, -6, 0)
 	colorSwatchFrame:SetSize(16, 16)
 
-	local colorSwatchBg = colorSwatchFrame:CreateTexture(colorSwatchFrame:GetName() .. "SwatchBg", "BACKGROUND")
+	local colorSwatchBg = _G[colorSwatchFrame:GetName() .. "SwatchBg"] or colorSwatchFrame:CreateTexture(colorSwatchFrame:GetName() .. "SwatchBg", "BACKGROUND")
 	colorSwatchBg:SetSize(14, 14)
 	colorSwatchBg:SetPoint("CENTER", colorSwatchFrame, 0, 0)
 	colorSwatchBg:SetColorTexture(1.0, 1.0, 1.0)
 
-	local colorSwatchTexture = colorSwatchFrame:CreateTexture(colorSwatchBg:GetName() .. "NormalTexture")
+	local colorSwatchTexture = _G[colorSwatchBg:GetName() .. "NormalTexture"] or colorSwatchFrame:CreateTexture(colorSwatchBg:GetName() .. "NormalTexture")
 	colorSwatchTexture:SetTexture("Interface\\ChatFrame\\ChatFrameColorSwatch")
 	colorSwatchTexture:SetAllPoints()
 	colorSwatchFrame:SetNormalTexture(colorSwatchTexture)
@@ -141,7 +141,7 @@ local function CreateDropDownMenuButton(name, parent)
 		lib.UIDropDownMenu_StartCounting(self:GetParent():GetParent());
 	end)
 
-	local arrowFrame = CreateFrame("Button", name .. "ExpandArrow", dropDownFrame)
+	local arrowFrame = _G[name .. "ExpandArrow"] or CreateFrame("Button", name .. "ExpandArrow", dropDownFrame)
 	arrowFrame:Hide()
 	arrowFrame:SetSize(16, 16)
 	arrowFrame:SetPoint("RIGHT", dropDownFrame, 0, 0)
@@ -149,12 +149,12 @@ local function CreateDropDownMenuButton(name, parent)
 	arrowFrame:SetScript("OnEnter", DropDownExpandArrow_OnEnter)
 	arrowFrame:SetScript("OnLeave", DropDownExpandArrow_OnLeave)
 
-	local arrowTexture = arrowFrame:CreateTexture()
+	local arrowTexture = _G[arrowFrame:GetName() .. "ArrowTexture"] or arrowFrame:CreateTexture(arrowFrame:GetName() .. "ArrowTexture")
 	arrowTexture:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
 	arrowTexture:SetAllPoints()
 	arrowFrame:SetNormalTexture(arrowTexture)
 
-	local invisibleButton = CreateFrame("Button", name .. "InvisibleButton", dropDownFrame)
+	local invisibleButton = _G[name .. "InvisibleButton"] or CreateFrame("Button", name .. "InvisibleButton", dropDownFrame)
 	dropDownFrame.invisibleButton = invisibleButton
 	invisibleButton:Hide()
 	invisibleButton:SetPoint("TOPLEFT")
@@ -169,7 +169,7 @@ local function CreateDropDownMenuButton(name, parent)
 	dropDownFrame:SetScript("OnEnable", function(self) self.invisibleButton:Hide() end)
 	dropDownFrame:SetScript("OnDisable", function(self) self.invisibleButton:Show() end)
 
-	local text = dropDownFrame:CreateFontString(name .. "NormalText")
+	local text = _G[name .. "NormalText"] or dropDownFrame:CreateFontString(name .. "NormalText")
 	dropDownFrame:SetFontString(text)
 	text:SetPoint("LEFT", dropDownFrame, -5, 0)
 	dropDownFrame:SetNormalFontObject("GameFontHighlightSmallLeft")
