@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 3
+local libName, libVersion = "ElioteDropDownMenu-1.0", 4
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -148,6 +148,8 @@ local function CreateDropDownMenuButton(name, parent)
 	arrowFrame:SetScript("OnMouseDown", DropDownExpandArrow_OnMouseDown)
 	arrowFrame:SetScript("OnEnter", DropDownExpandArrow_OnEnter)
 	arrowFrame:SetScript("OnLeave", DropDownExpandArrow_OnLeave)
+	arrowFrame:SetScript("OnShow", function(self) colorSwatchFrame:SetPoint("RIGHT", self, "LEFT", -4, 0) end)
+	arrowFrame:SetScript("OnHide", function() colorSwatchFrame:SetPoint("RIGHT", dropDownFrame, -6, 0) end)
 
 	local arrowTexture = _G[arrowFrame:GetName() .. "ArrowTexture"] or arrowFrame:CreateTexture(arrowFrame:GetName() .. "ArrowTexture")
 	arrowTexture:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
@@ -1003,7 +1005,10 @@ function lib.UIDropDownMenu_GetButtonWidth(button)
 	end
 
 	-- Add padding if has and expand arrow or color swatch
-	if (button.hasArrow or button.hasColorSwatch) then
+	if (button.hasArrow) then
+		width = width + 16;
+	end
+	if button.hasColorSwatch then
 		width = width + 20;
 	end
 	if (button.notCheckable) then
