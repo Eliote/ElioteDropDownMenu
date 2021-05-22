@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 5
+local libName, libVersion = "ElioteDropDownMenu-1.0", 6
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -8,8 +8,6 @@ local _G = _G
 
 local prefixDropDownList = "ElioteDDM_DropDownList"
 local prefixDropDownListButtonRegex = "^" .. prefixDropDownList .. "[0-9]+$"
-
-local IS_CLASSIC = select(4, GetBuildInfo()) < 20000
 
 local BACKDROP_DROPDOWN = {
 	bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
@@ -1705,7 +1703,7 @@ end
 function lib.UIDropDownMenu_StartCounting() end -- no op
 function lib.UIDropDownMenu_StopCounting() end -- no op
 
-if IS_CLASSIC then
+if not UIDropDownMenu_HandleGlobalMouseEvent then
 	-- Start the countdown on a frame
 	function lib.UIDropDownMenu_StartCounting(frame)
 		if (frame.parent) then
