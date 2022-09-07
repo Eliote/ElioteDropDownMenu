@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 6
+local libName, libVersion = "ElioteDropDownMenu-1.0", 7
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -1747,6 +1747,7 @@ function lib.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDe
 end
 
 function lib.EasyMenu_Initialize(frame, level, menuList)
+	if not menuList then return end
 	for index = 1, #menuList do
 		local value = menuList[index]
 		if (value.text) then
