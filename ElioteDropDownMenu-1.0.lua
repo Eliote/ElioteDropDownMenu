@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 7
+local libName, libVersion = "ElioteDropDownMenu-1.0", 8
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -499,6 +499,10 @@ function lib.UIDropDownMenuButton_OnEnter(self)
 		self.Icon:SetTexture(self.mouseOverIcon);
 		self.Icon:Show();
 	end
+
+	if GetValueOrCallFunction then
+		GetValueOrCallFunction(self, "funcOnEnter", self);
+	end
 end
 
 function lib.UIDropDownMenuButton_OnLeave(self)
@@ -803,7 +807,13 @@ function lib.UIDropDownMenu_AddButton(info, level)
 
 	-- If not checkable move everything over to the left to fill in the gap where the check would be
 	local xPos = 5;
-	local yPos = -((button:GetID() - 1) * lib.UIDROPDOWNMENU_BUTTON_HEIGHT) - lib.UIDROPDOWNMENU_BORDER_HEIGHT;
+	local previousButton = _G[listFrameName .. "Button" .. (index - 1)];
+	local yPos
+	if (previousButton and previousButton.yPos) then
+		yPos = previousButton.yPos - previousButton:GetHeight();
+	else
+		yPos = -lib.UIDROPDOWNMENU_BORDER_HEIGHT;
+	end
 	local displayInfo = normalText;
 	if (info.iconOnly) then
 		displayInfo = icon;
@@ -838,6 +848,7 @@ function lib.UIDropDownMenu_AddButton(info, level)
 		xPos = xPos + info.leftPadding;
 	end
 	button:SetPoint("TOPLEFT", button:GetParent(), "TOPLEFT", xPos, yPos);
+	button.yPos = yPos
 
 	-- See if button is selected by id or name
 	if (frame) then
@@ -940,8 +951,16 @@ function lib.UIDropDownMenu_AddButton(info, level)
 		listFrame.maxWidth = width;
 	end
 
+	if (button.customFrame) then
+		button:SetHeight(button.customFrame:GetPreferredEntryHeight())
+	else
+		button:SetHeight(lib.UIDROPDOWNMENU_BUTTON_HEIGHT)
+	end
+
+	local height = (-yPos) + button:GetHeight() + lib.UIDROPDOWNMENU_BORDER_HEIGHT
+
 	-- Set the height of the listframe
-	listFrame:SetHeight((index * lib.UIDROPDOWNMENU_BUTTON_HEIGHT) + (lib.UIDROPDOWNMENU_BORDER_HEIGHT * 2));
+	listFrame:SetHeight(height);
 end
 
 function lib.UIDropDownMenu_CheckAddCustomFrame(self, button, info)
@@ -1245,6 +1264,8 @@ function lib.ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 	lib.UIDROPDOWNMENU_MENU_VALUE = value;
 	local listFrameName = prefixDropDownList .. level;
 	local listFrame = _G[listFrameName];
+	lib.UIDropDownMenu_ClearCustomFrames(listFrame);
+
 	local tempFrame;
 	local point, relativePoint, relativeTo;
 	if (not dropDownFrame) then
@@ -1506,6 +1527,10 @@ function lib.UIDropDownMenu_OnHide(self)
 		lib.UIDROPDOWNMENU_OPEN_MENU = nil;
 	end
 
+	lib.UIDropDownMenu_ClearCustomFrames(self);
+end
+
+function lib.UIDropDownMenu_ClearCustomFrames(self)
 	if self.customFrames then
 		for index, frame in ipairs(self.customFrames) do
 			frame:Hide();
