@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 8
+local libName, libVersion = "ElioteDropDownMenu-1.0", 9
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -277,6 +277,7 @@ local function CreateDropDownMenu(name, parent)
 		lib.ToggleDropDownMenu(nil, nil, self:GetParent())
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 	end)
+	Mixin(button, lib.HandlesGlobalMouseEventMixin)
 
 	local buttonNormalTexture = button:CreateTexture(name .. "ButtonNormalTexture")
 	buttonNormalTexture:SetTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
@@ -961,6 +962,8 @@ function lib.UIDropDownMenu_AddButton(info, level)
 
 	-- Set the height of the listframe
 	listFrame:SetHeight(height);
+
+	return button
 end
 
 function lib.UIDropDownMenu_CheckAddCustomFrame(self, button, info)
@@ -1779,6 +1782,15 @@ function lib.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDe
 	lib.ToggleDropDownMenu(1, nil, menuFrame, anchor, x, y, menuList, nil, autoHideDelay);
 end
 
+--- "temporary" ;) fix to avoid showing the menu when it is already visible
+function lib.ToggleEasyMenu(...)
+	if (lib.UIDROPDOWNMENU_OPEN_MENU ~= nil) then
+		lib.CloseDropDownMenus()
+	else
+		lib.EasyMenu(...)
+	end
+end
+
 function lib.EasyMenu_Initialize(frame, level, menuList)
 	if not menuList then return end
 	for index = 1, #menuList do
@@ -1789,6 +1801,18 @@ function lib.EasyMenu_Initialize(frame, level, menuList)
 		end
 	end
 end
+
+--- Mixin to prevent clicks in a button to close the menu because of GLOBAL_MOUSE_DOWN,
+--- and immediately open again, because the button was clicked.
+--- use: Mixin(frame, EDDM.HandlesGlobalMouseEventMixin)
+--- Frames created with [EDDM.UIDropDownMenu_Create] or [EDDM.UIDropDownMenu_GetOrCreate] already have this mixin.
+lib.HandlesGlobalMouseEventMixin = {
+	HandlesGlobalMouseEvent = function(_, buttonID, event)
+		if (event == "GLOBAL_MOUSE_DOWN" and buttonID == "LeftButton") then
+			return true
+		end
+	end
+}
 --------------------------
 --- Blizzard's code end
 --------------------------
