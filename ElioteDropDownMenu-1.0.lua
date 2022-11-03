@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 9
+local libName, libVersion = "ElioteDropDownMenu-1.0", 10
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -333,6 +333,7 @@ function lib.UIDropDownMenuDelegate_OnAttributeChanged(self, attribute, value)
 		lib.UIDROPDOWNMENU_INIT_MENU = value;
 	elseif (attribute == "openmenu") then
 		lib.UIDROPDOWNMENU_OPEN_MENU = value;
+		lib.UIDROPDOWNMENU_OPEN_MENU_ANCHOR = self:GetAttribute("anchorframe")
 	end
 end
 
@@ -1301,6 +1302,7 @@ function lib.ToggleDropDownMenu(level, value, dropDownFrame, anchorName, xOffset
 		-- Display stuff
 		-- Level specific stuff
 		if (level == 1) then
+			UIDropDownMenuDelegate:SetAttribute("anchorframe", anchorName);
 			UIDropDownMenuDelegate:SetAttribute("openmenu", dropDownFrame);
 			listFrame:ClearAllPoints();
 			-- If there's no specified anchorName then use left side of the dropdown menu
@@ -1783,11 +1785,11 @@ function lib.EasyMenu(menuList, menuFrame, anchor, x, y, displayMode, autoHideDe
 end
 
 --- "temporary" ;) fix to avoid showing the menu when it is already visible
-function lib.ToggleEasyMenu(...)
-	if (lib.UIDROPDOWNMENU_OPEN_MENU ~= nil) then
+function lib.ToggleEasyMenu(menuList, menuFrame, anchor, ...)
+	if (lib.UIDROPDOWNMENU_OPEN_MENU == menuFrame and lib.UIDROPDOWNMENU_OPEN_MENU_ANCHOR == anchor) then
 		lib.CloseDropDownMenus()
 	else
-		lib.EasyMenu(...)
+		lib.EasyMenu(menuList, menuFrame, anchor,...)
 	end
 end
 
@@ -1822,10 +1824,14 @@ lib.UIDropDownMenu_CreateFrames(2, 1)
 local _, fontHeight, _ = _G[prefixDropDownList .. 1 .. "Button" .. 1 .. "NormalText"]:GetFont()
 lib.UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = fontHeight
 
-UIDropDownMenuDelegate:RegisterEvent("PLAYER_ENTERING_WORLD")
-UIDropDownMenuDelegate:SetScript("OnEvent", function(self, event, ...)
-	UIDropDownMenuDelegate:UnregisterEvent("PLAYER_ENTERING_WORLD")
-	if (UIDropDownMenu_HandleGlobalMouseEvent) then
-		hooksecurefunc("UIDropDownMenu_HandleGlobalMouseEvent", lib.UIDropDownMenu_HandleGlobalMouseEvent)
+local function HandlesGlobalMouseEvent(focus, buttonID, event)
+	return focus and focus.HandlesGlobalMouseEvent and focus:HandlesGlobalMouseEvent(buttonID, event);
+end
+
+UIDropDownMenuDelegate:RegisterEvent("GLOBAL_MOUSE_DOWN")
+UIDropDownMenuDelegate:SetScript("OnEvent", function(self, event, buttonID)
+	local mouseFocus = GetMouseFocus();
+	if not HandlesGlobalMouseEvent(mouseFocus, buttonID, event) then
+		lib.UIDropDownMenu_HandleGlobalMouseEvent(buttonID, event);
 	end
 end)
