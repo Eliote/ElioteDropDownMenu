@@ -1,4 +1,4 @@
-local libName, libVersion = "ElioteDropDownMenu-1.0", 12
+local libName, libVersion = "ElioteDropDownMenu-1.0", 13
 
 --- @class ElioteDropDownMenu
 local lib = LibStub:NewLibrary(libName, libVersion)
@@ -1722,6 +1722,10 @@ function lib.UIDropDownMenu_GetValue(id)
 end
 
 function lib.OpenColorPicker(info)
+	if (ColorPickerFrame.SetupColorPickerAndShow) then
+		ColorPickerFrame:SetupColorPickerAndShow(info)
+		return
+	end
 	ColorPickerFrame.func = info.swatchFunc;
 	ColorPickerFrame.hasOpacity = info.hasOpacity;
 	ColorPickerFrame.opacityFunc = info.opacityFunc;
